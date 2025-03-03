@@ -1,0 +1,35 @@
+name: Deploy to AWS with OpenTofu
+
+on:
+  push:
+    branches: [ '**' ] # All branches
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+
+        steps:
+        - uses: actions/checkout@v4
+        - uses: Scalr/scalr-action@v1
+          with:
+            scalr_hostname: "elopickandrankfavorites.scalr.io"
+            scalr_token: ${{ secrets.SCALR_TOKEN }}
+            scalr_workspace: ws-v0onkodhm6keg7o6p
+            binary_output: true
+
+        - run: tofu init
+
+        - id: plan
+          run: tofu plan
+
+        - run: echo "${{ steps.plan.outputs.stdout }}"
+        - run: echo "${{ steps.plan.outputs.stderr }}"
+        - run: echo "${{ steps.plan.outputs.exitcode }}"
+
+        - id: apply
+          run: tofu apply -auto-approve
+
+        - run: echo ${{ steps.apply.outputs.server_ip }}
